@@ -9,12 +9,12 @@ use Illuminate\Support\Str;
 
 class Listing extends Model
 {
-    use HasFactory,SoftDeletes;
-    protected $guarded =[
+    use HasFactory, SoftDeletes;
+    /*    protected $guarded =[
         "id",
-    ];
-  /*   protected $fillable =[
-        'titile',
+    ]; */
+    protected $fillable = [
+        'title',
         'slug',
         'description',
         'address',
@@ -29,19 +29,20 @@ class Listing extends Model
         'cinema_available'
 
 
-    ]; */
+    ];
 
     protected $casts = [
-        'attachments'=> 'array'];
+        'attachments' => 'array'
+    ];
 
     public function getRouteKeyName()
     {
         return 'slug';
     }
-    
-    public function setTitleAtAttribute($value){
+
+    public function setTitleAttribute($value)
+    {
         $this->attributes['title'] = $value;
         $this->attributes['slug'] = Str::slug($value);
     }
-
 }

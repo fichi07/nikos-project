@@ -7,11 +7,15 @@ use App\Filament\Resources\ListingResource\RelationManagers;
 use App\Models\Listing;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
+use Filament\Forms\Components\FileUpload;
+use Filament\Support\Enums\FontWeight;
 
 class ListingResource extends Resource
 {
@@ -23,14 +27,15 @@ class ListingResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('titile')
+                Forms\Components\TextInput::make('title')
                     ->required()
+                    ->afterStateUpdated(fn(Set $set, ?String $state) => $set('slug', Str::slug($state)))
+                    ->live(debounce: 1000)
                     ->maxLength(255),
                 Forms\Components\TextInput::make('slug')
-                    ->maxLength(255),
+                    ->disabled(),
                 Forms\Components\Textarea::make('description')
-                    ->required()
-                    ->columnSpanFull(),
+                    ->required(),
                 Forms\Components\TextInput::make('address')
                     ->required()
                     ->maxLength(255),
@@ -50,24 +55,22 @@ class ListingResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(0),
-                Forms\Components\Textarea::make('attachments')
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('full_support_available')
-                    ->required()
-                    ->numeric()
+                Forms\Components\Checkbox::make('full_support_available')
                     ->default(0),
-                Forms\Components\TextInput::make('gym_area_available')
-                    ->required()
-                    ->numeric()
+                Forms\Components\Checkbox::make('gym_area_available')
                     ->default(0),
-                Forms\Components\TextInput::make('mini_cafe_available')
-                    ->required()
-                    ->numeric()
+                Forms\Components\Checkbox::make('mini_cafe_available')
                     ->default(0),
-                Forms\Components\TextInput::make('cinema_available')
-                    ->required()
-                    ->numeric()
+                Forms\Components\Checkbox::make('cinema_available')
                     ->default(0),
+                FileUpload::make('attachments')
+                    ->directory('listings')
+                    ->image()
+                    ->openable()
+                    ->multiple()
+                    ->reorderable()
+                    ->appendFiles(),
+
             ]);
     }
 
@@ -75,12 +78,9 @@ class ListingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('titile')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('address')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('title')
+                    ->weight(FontWeight::Bold),
+
                 Tables\Columns\TextColumn::make('sqft')
                     ->numeric()
                     ->sortable(),
@@ -91,24 +91,10 @@ class ListingResource extends Resource
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price_per_day')
-                    ->numeric()
+                    ->money('USD')
+                    ->weight(FontWeight::Bold)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('full_support_available')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('gym_area_available')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('mini_cafe_available')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('cinema_available')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -122,7 +108,10 @@ class ListingResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\DeleteAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ForceDeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
