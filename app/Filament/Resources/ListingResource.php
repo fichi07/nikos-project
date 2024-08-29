@@ -46,6 +46,7 @@ class ListingResource extends Resource
                 Forms\Components\TextInput::make('wifi_speed')
                     ->required()
                     ->numeric()
+                    ->suffix('Mbps')
                     ->default(0),
                 Forms\Components\TextInput::make('max_person')
                     ->required()
@@ -54,6 +55,7 @@ class ListingResource extends Resource
                 Forms\Components\TextInput::make('price_per_day')
                     ->required()
                     ->numeric()
+                    ->suffix('USD')
                     ->default(0),
                 Forms\Components\Checkbox::make('full_support_available')
                     ->default(0),
