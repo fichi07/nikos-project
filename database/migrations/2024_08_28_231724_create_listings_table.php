@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
-            $table->string('titile')->unique();
-            $table->string('slug')->nullable();
+            $table->string('title')->unique();
+            $table->string('slug')->unique();
             $table->text('description');
             $table->string('address');
             $table->unsignedSmallInteger('sqft')->default(0);
